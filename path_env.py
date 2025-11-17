@@ -125,11 +125,16 @@ if __name__ == "__main__":
 
 
     valid_exec = extrcating_executables()
-    writeables = extracting_writeables()
+    writeables = extracting_writeables().split('\n')
     s_valid_exec = set(valid_exec)
     s_writeables = set(writeables)
+    hh = ['/bin/zdump', '/bin/zegrep']
+    sh = ['/bin/zdump', '/etc/grep']
+    shh = set(hh)
+    shs = set(sh)
     intersection = s_valid_exec.intersection(s_writeables)
     if intersection:
+        print("[[--]] here are the common executbales : -----")
         print(intersection)
     else:
         print("[[--]] None intersections were found ...")
