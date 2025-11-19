@@ -11,18 +11,17 @@ class PATH_DIR:
     file_path : str 
     
 
-## checks is a file is executable:
+## checks if a file is executable:
 def is_executable(dir_env_path:PATH_DIR):
     are_executable =[]
     
     for ex in dir_env_path.executables:
         full_path = dir_env_path.file_path +"/"+ ex
-        #print(ex.file_path)
+        
         if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
-            #print(f"executable name : {ex}")
+            
             are_executable.append(full_path)
-        #else:
-            #print(f"is not : {full_path}")
+       
 
     return are_executable
     
@@ -36,7 +35,7 @@ def extract_executables(dir_path:PATH_DIR):
     ready_to_go_exec = is_executable(dir_path)
     
     dir_path.executables = ready_to_go_exec
-    #print(dir_path.executables) 
+    
     return dir_path
     
     
@@ -62,8 +61,8 @@ def filter_hidden(dir):
                 continue
             else:
                 non_hidden.append(n_d)
-            #print(non_hidden[-1])
-    #print(non_hidden)
+            
+    
     return non_hidden
 
 
@@ -75,7 +74,7 @@ def extrcating_executables():
     list_of_dir = path_env.split(":")
 
     filtered = filter_hidden(list_of_dir)
-    #print(filtered)
+    
     for di in filtered:
         execu = extract_executables(di)
         
@@ -128,17 +127,15 @@ if __name__ == "__main__":
     writeables = extracting_writeables().split('\n')
     s_valid_exec = set(valid_exec)
     s_writeables = set(writeables)
-    hh = ['/bin/zdump', '/bin/zegrep']
-    sh = ['/bin/zdump', '/etc/grep']
-    shh = set(hh)
-    shs = set(sh)
+
     intersection = s_valid_exec.intersection(s_writeables)
     if intersection:
         print("[[--]] here are the common executbales : -----")
-        print(intersection)
+        for intersect in intersection:
+            print(intersect, end='\n')
     else:
-        print("[[--]] None intersections were found ...")
+        print("[[--]] No intersections were found ...")
 
     
-    #extracting_writeables()
+    
 
