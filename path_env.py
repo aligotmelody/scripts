@@ -1,6 +1,7 @@
 import subprocess, os
 from dataclasses import dataclass
 from typing import Dict
+import concurrent.futures
 
 
 
@@ -27,7 +28,10 @@ def is_executable(dir_env_path:PATH_DIR):
     
 
 def extract_executables(dir_path:PATH_DIR):
+   
+    #ls_dir = os.listdir(dir_path.file_path)
     ls_dir = "".join(["ls ", f"{dir_path.file_path}"])
+    
     dir_list = subprocess.check_output(ls_dir, shell=True, text=True)
     dir_content = dir_list.split('\n')
     cleaned_dir_content = dir_content[1:len(dir_content)-1]
@@ -36,13 +40,14 @@ def extract_executables(dir_path:PATH_DIR):
     
     dir_path.executables = ready_to_go_exec
     
+    
     return dir_path
     
     
 
 
 
-## checks for hidden dir, files:
+## filters out hidden dir, files:
 def filter_hidden(dir):
     non_hidden = []
     
@@ -67,6 +72,7 @@ def filter_hidden(dir):
 
 
 def extrcating_executables():
+    print("[1] starting extracting_executables")
 
     valid_executables = []
     cmd = "echo $PATH"
@@ -80,6 +86,7 @@ def extrcating_executables():
         
         if execu.executables:
             [valid_executables.append(executable) for executable in execu.executables]
+    print("[2] finished extracting_executables")
 
 
     return valid_executables
@@ -90,7 +97,7 @@ def extrcating_executables():
 def extracting_writeables():
     try:
         # Tries to run the command and checks for status 0 (Success)
-        ss = subprocess.check_output("find / -writable 2>/dev/null", shell=True, text=True)
+        ss = subprocess.check_output("find /home /tmp /var /bin /usr /root -writable 2>/dev/null", shell=True, text=True)
         print("[[--]] extracting writables ----_______-----")
         #print("Command executed successfully (Status 0):\n", ss)
         print("---- Command executed successfully (Status 0) ----")
@@ -113,6 +120,7 @@ def extracting_writeables():
     except Exception as e:
         # Catch any other unexpected errors
         print(f"An unexpected error occurred: {e}", file=sys.stderr)
+        return
 
     
         
@@ -121,21 +129,34 @@ def extracting_writeables():
 
 
 if __name__ == "__main__":
+   with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        futures = {
+            executor.submit(extrcating_executables): "exec",
+            executor.submit(extracting_writeables): "write"
+        }
 
+        results = {}
 
-    valid_exec = extrcating_executables()
-    writeables = extracting_writeables().split('\n')
-    s_valid_exec = set(valid_exec)
-    s_writeables = set(writeables)
+        for future in concurrent.futures.as_completed(futures):
+            tag = futures[future]
+            results[tag] = future.result()
 
-    intersection = s_valid_exec.intersection(s_writeables)
-    if intersection:
-        print("[[--]] here are the common executbales : -----")
-        for intersect in intersection:
-            print(intersect, end='\n')
-    else:
-        print("[[--]] No intersections were found ...")
+        exec_result = results["exec"]
+        exec_writables = results["write"].split("\n")
+        
+        if exec_result and exec_writables:
+            s_valid_exec = set(exec_result)
+            s_writeables = set(exec_writables)
 
-    
-    
+            intersection = s_valid_exec.intersection(s_writeables)
+            if intersection:
+                print("[[--]] here are the common executbales : -----")
+                for intersect in intersection:
+                    print(intersect, end='\n')
+            else:
+                print("[[--]] No intersections were found ...")
+        else:
+            print("[[-!!-]] Either or both functions ran into a problem")
+        
+        
 
