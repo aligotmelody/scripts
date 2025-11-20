@@ -10,7 +10,8 @@ the python version i was using at the time python 3.11.2 . <br>
 
 ## Output:
 
-```[1] starting extracting_executables \n
+```
+[1] starting extracting_executables
 [2] finished extracting_executables
 --- CalledProcessError Caught ---
 Command returned non-zero exit status 1.
